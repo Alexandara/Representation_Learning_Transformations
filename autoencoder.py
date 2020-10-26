@@ -1,28 +1,9 @@
 """TensorFlow 2.0 implementation of vanilla Autoencoder."""
+# https://towardsdatascience.com/implementing-an-autoencoder-in-tensorflow-2-0-5e86126e9f7
 import numpy as np
 import tensorflow as tf
 
 __author__ = "Abien Fred Agarap"
-
-np.random.seed(1)
-tf.random.set_seed(1)
-batch_size = 128
-epochs = 10
-learning_rate = 1e-2
-intermediate_dim = 64
-original_dim = 784
-
-(training_features, _), _ = tf.keras.datasets.mnist.load_data()
-training_features = training_features / np.max(training_features)
-training_features = training_features.reshape(training_features.shape[0],
-                                              training_features.shape[1] * training_features.shape[2])
-training_features = training_features.astype('float32')
-
-training_dataset = tf.data.Dataset.from_tensor_slices(training_features)
-training_dataset = training_dataset.batch(batch_size)
-training_dataset = training_dataset.shuffle(training_features.shape[0])
-training_dataset = training_dataset.prefetch(batch_size * 4)
-
 
 class Encoder(tf.keras.layers.Layer):
     def __init__(self, intermediate_dim):
@@ -63,6 +44,7 @@ class Decoder(tf.keras.layers.Layer):
 class Autoencoder(tf.keras.Model):
     def __init__(self, intermediate_dim, original_dim):
         super(Autoencoder, self).__init__()
+        self.code = []
         self.encoder = Encoder(intermediate_dim=intermediate_dim)
         self.decoder = Decoder(
             intermediate_dim=intermediate_dim,
@@ -70,7 +52,7 @@ class Autoencoder(tf.keras.Model):
         )
 
     def call(self, input_features):
-        code = self.encoder(input_features)
-        reconstructed = self.decoder(code)
+        self.code.append(self.encoder(input_features))
+        reconstructed = self.decoder(self.code[len(self.code-1)])
         return reconstructed
 
