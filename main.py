@@ -2,11 +2,20 @@ import numpy as np
 import tensorflow as tf
 import autoencoder
 from matplotlib import pyplot as plt
+from PIL import Image
 import cv2
 from random import seed
 from random import randint
 from numpy import savetxt
-import tensorflow.contrib.factorization.KMeans as KMeans
+from tensorflow.contrib.factorization import KMeans
+import glob
+from tensorflow.keras import optimizers
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten
+from tensorflow.keras.layers import Conv2D, MaxPooling2D
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 __author__ = "Abien Fred Agarap, Alexis Tudor, and Gunner Stone"
 
@@ -19,7 +28,11 @@ def uploadData(): # GUNNER You'll need to mess with this to get our data in
     intermediate_dim = 64 # GUNNER This needs to be checked
     original_dim = 784 # This needs to be checked (but I think it's correct)
 
-    (training_features, _), _ = tf.keras.datasets.fashion_mnist.load_data() # instead of raw data, it should be the transformed data
+    filelist = glob.glob('C:\\Users\\gunne\\Desktop\\CS791\\Representation_Learning_Transformations-main\\Rigid\\*.jpg')
+    
+
+    training_features = np.array([np.array(Image.open(fname)) for fname in filelist])
+    #(training_features, _), _ = tf.keras.datasets.fashion_mnist.load_data() # instead of raw data, it should be the transformed data
     training_features = training_features / np.max(training_features)
     training_features = training_features.reshape(training_features.shape[0],
                                                   training_features.shape[1] * training_features.shape[2])
@@ -30,7 +43,7 @@ def uploadData(): # GUNNER You'll need to mess with this to get our data in
     training_dataset = training_dataset.shuffle(training_features.shape[0])
     training_dataset = training_dataset.prefetch(batch_size * 4)
 
-    labels = [] # The labels should be 0 for rigid, 1 for non-rigid
+    labels = [0]*60000 # The labels should be 0 for rigid, 1 for non-rigid
 
     return intermediate_dim, original_dim, learning_rate, epochs, training_features, training_dataset, labels
 
@@ -41,8 +54,22 @@ def kmeans(representations, labels):
     batch_size = 1024  # The number of samples per batch
     k = 2  # The number of clusters
     num_classes = 2  # Rigid vs. non-rigid
-    num_features = 784  # GUNNER Each image WAS 28x28 pixels, check what the autoencoder spits out as a representation?
+    num_features = 64  # GUNNER Each image WAS 28x28 pixels, check what the autoencoder spits out as a representation?
 
+    print(type(representations))
+
+    print(type(representations))
+    print(type(representations))
+    print(type(representations))
+    print(type(representations))
+    print(type(representations))
+
+    print(np.shape(representations))
+    print(np.shape(representations))
+    print(np.shape(representations))
+    print(np.shape(representations))
+    print(np.shape(representations))
+    
     # Input images
     X = tf.placeholder(tf.float32, shape=[None, num_features])
     # Labels (for assigning a label to a centroid and testing)
@@ -53,8 +80,7 @@ def kmeans(representations, labels):
                     use_mini_batch=True)
 
     # Build KMeans graph
-    (all_scores, cluster_idx, scores, cluster_centers_initialized,
-     cluster_centers_vars, init_op, train_op) = kmeans.training_graph()
+    (all_scores, cluster_idx, scores, cluster_centers_initialized, init_op, train_op) = kmeans.training_graph()
     cluster_idx = cluster_idx[0]  # fix for cluster_idx being a tuple
     avg_distance = tf.reduce_mean(scores)
 
@@ -99,12 +125,10 @@ def kmeans(representations, labels):
 if __name__ == "__main__":
     intermediate_dim, original_dim, learning_rate, epochs, training_features, training_dataset, labels = uploadData()
     #generateRigid()
-    autoencoder = autoencoder.Autoencoder(
-        intermediate_dim=intermediate_dim,
-        original_dim=original_dim
-    )
-    opt = tf.optimizers.Adam(learning_rate=learning_rate)
+    autoencoder = autoencoder.Autoencoder(intermediate_dim=intermediate_dim,original_dim=original_dim)
+    opt = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
+    print("Checkpoint 1")
 
     def loss(model, original):
         reconstruction_error = tf.reduce_mean(tf.square(tf.subtract(model(original), original)))
@@ -117,21 +141,24 @@ if __name__ == "__main__":
         gradient_variables = zip(gradients, model.trainable_variables)
         opt.apply_gradients(gradient_variables)
 
-
     writer = tf.summary.create_file_writer('tmp')
+
+    print("Checkpoint 2")
 
     with writer.as_default():
         with tf.summary.record_if(True):
             for epoch in range(epochs):
+                print("Epoch #"+str(epoch))
                 for step, batch_features in enumerate(training_dataset):
                     train(loss, autoencoder, opt, batch_features)
                     loss_values = loss(autoencoder, batch_features)
                     original = tf.reshape(batch_features, (batch_features.shape[0], 28, 28, 1))
                     reconstructed = tf.reshape(autoencoder(tf.constant(batch_features)),
-                                               (batch_features.shape[0], 28, 28, 1))
+                                                (batch_features.shape[0], 28, 28, 1))
                     tf.summary.scalar('loss', loss_values, step=step)
                     tf.summary.image('original', original, max_outputs=10, step=step)
                     tf.summary.image('reconstructed', reconstructed, max_outputs=10, step=step)
-
+    print("--Has finished Autoencoder--")
     representations = autoencoder.code
+    print("--Working on Kmeans--")
     kmeans(representations, labels)

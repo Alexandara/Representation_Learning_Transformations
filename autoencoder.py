@@ -53,6 +53,5 @@ class Autoencoder(tf.keras.Model):
 
     def call(self, input_features):
         self.code.append(self.encoder(input_features))
-        reconstructed = self.decoder(self.code[len(self.code-1)])
+        reconstructed = self.decoder(self.code[len(self.code)-1])
         return reconstructed
-
