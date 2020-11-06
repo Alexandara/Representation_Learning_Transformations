@@ -1,0 +1,4 @@
+conda install pytorch torchvision torchaudio cudatoolkit=10.1 -c pytorch
+conda install -c conda-forge opencv
+conda install -c conda-forge tqdm
+conda install -c conda-forge jupyterlab
