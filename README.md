@@ -21,6 +21,7 @@ Reading `training_data.npy`
     * [1,0] is Rigid ; [0,1] is Nonrigid
     
 ![Nonrigid Image](https://i.imgur.com/IySuxbs.png)
+
 *NonRigid Image with One-hot vector [0,1]*
 
 # (*TODO) Feeding Images into Autoencoder
