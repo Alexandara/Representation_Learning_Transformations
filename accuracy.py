@@ -90,4 +90,12 @@ if __name__ == '__main__':
     # clusters[1] = second cluster center
     clusters = np.array([np.array([4,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]),
            np.array([5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1])])
+
+
+    print("Shape of centroids: "+str(np.shape(clusters)))
+    print("Shape of data: "+str(np.shape(data)))
+    print("Shape of latent image: "+str(np.shape(data[0][0])))
+    print("Shape of latent label: "+str(np.shape(data[0][1])))
+      
     acc = accuracy(clusters, data)
+    print(acc)
